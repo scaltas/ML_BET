@@ -1,12 +1,12 @@
+using Accord.IO;
+using Accord.MachineLearning.VectorMachines;
+using Accord.MachineLearning.VectorMachines.Learning;
+using Accord.Statistics.Kernels;
+using Accord.Statistics.Models.Regression.Linear;
 using FootballMatchPrediction.API.Models;
 using FootballMatchPrediction.API.Services;
-using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
+
 
 namespace FootballMatchPrediction.API.Controllers
 {
@@ -26,23 +26,61 @@ namespace FootballMatchPrediction.API.Controllers
         {
             const int numberOfSeasonsToRetrieve = 1;
 
-            var homeTeamMatchData = _matchDataService.ScrapeMatchData(input.HomeTeamId, input.HomeTeamName, numberOfSeasonsToRetrieve);
-            var awayTeamMatchData = _matchDataService.ScrapeMatchData(input.AwayTeamId, input.AwayTeamName, numberOfSeasonsToRetrieve);
+            var matchData = _matchDataService.ScrapeMatchData(input.TeamId, input.TeamName, numberOfSeasonsToRetrieve);
 
-            var prediction = MakePrediction(homeTeamMatchData, awayTeamMatchData);
+            var prediction = MakePrediction(input, matchData);
 
             return Ok(new
             {
                 Prediction = prediction,
-                HomeTeamMatchData = homeTeamMatchData.OrderByDescending(d => d.Date),
-                AwayTeamMatchData = awayTeamMatchData.OrderByDescending(d => d.Date),
+                HomeTeamMatchData = matchData.OrderByDescending(d => d.Date)
             });
         }
 
-        private string MakePrediction(List<ParsedMatch> homeTeamMatchData, List<ParsedMatch> awayTeamMatchData)
+        private object MakePrediction(MatchInputModel input, List<ParsedMatch> matchData)
         {
-            // TODO Replace this with actual prediction logic.
-            return "Home Team Wins";
+            var preprocessedMatches = new List<PreprocessedMatch>();
+            foreach (var match in matchData)
+            {
+                var teams = match.Match.Split(" - ");
+                var score = match.Score.Split(" - ");
+                var reverse = ReplaceTurkishChars(teams[1]) == input.TeamName;
+                preprocessedMatches.Add(new PreprocessedMatch()
+                {
+                    Odds = reverse ? match.OddsData.Odds2 : match.OddsData.Odds1,
+                    Score = reverse 
+                        ? new Tuple<int, int>(Convert.ToInt32(score[1]), Convert.ToInt32(score[0])) 
+                        : new Tuple<int, int>(Convert.ToInt32(score[0]), Convert.ToInt32(score[1]))
+                });
+            }
+
+            var result1 = Predict(preprocessedMatches, input.Odds1, true);
+            var result2 = Predict(preprocessedMatches, input.Odds1, false);
+            return $"{result1} - {result2}";
+        }
+
+        private object Predict(List<PreprocessedMatch> preprocessedMatches, double odds, bool scored)
+        {
+            double[] inputs = preprocessedMatches.Select(match => match.Odds).ToArray();
+            double[] outputs = preprocessedMatches.Select(match => Convert.ToDouble(scored ? match.Score.Item1 : match.Score.Item2)).ToArray();
+
+            OrdinaryLeastSquares ols = new OrdinaryLeastSquares();
+
+            SimpleLinearRegression regression = ols.Learn(inputs, outputs);
+
+            double y = regression.Transform(odds); 
+
+            double s = regression.Slope;     
+            double c = regression.Intercept; 
+
+            return y;
+        }
+
+        private string ReplaceTurkishChars(string input)
+        {
+            return input
+                .Replace("þ", "s")
+                .Replace("ç", "c");
         }
     }
 }
