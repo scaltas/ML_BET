@@ -20,21 +20,13 @@ namespace FootballMatchPrediction.API.Controllers
         [HttpPost]
         public IActionResult PredictMatchOutcome(MatchInputModel input)
         {
-            var homeTeam = input.HomeTeam;
-            var awayTeam = input.AwayTeam;
-            if (string.IsNullOrEmpty(homeTeam) && string.IsNullOrEmpty(awayTeam))
-            {
-                var teams = input.Match
-                    .Split("/")[5]
-                    .Split("-");
-                homeTeam = teams[0];
-                awayTeam = teams[1];
-            }
-
             var teamUrls = _matchDataService.GetTeamUrls(input.Match);
             
             var oddsScraper = new OddsScraper();
             var oddsData = oddsScraper.ExtractOddsDataFromUrl(input.Match);
+
+            var homeTeam = teamUrls[0].Split("/")[5];
+            var awayTeam = teamUrls[1].Split("/")[5];
 
             var homeMatchData = GetMatchData(teamUrls[0], homeTeam);
             var awayMatchData = GetMatchData(teamUrls[1], awayTeam);
