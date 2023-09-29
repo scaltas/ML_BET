@@ -9,7 +9,11 @@ namespace FootballMatchPrediction.API.Services
         public OddsData ExtractOddsDataFromUrl(string oddsPageUrl)
         {
             var web = new HtmlWeb();
-            var doc = web.Load($"https:{oddsPageUrl}");
+
+            if (!oddsPageUrl.Contains("https"))
+                oddsPageUrl = $"https:{oddsPageUrl}";
+
+            var doc = web.Load($"{oddsPageUrl}");
 
             var oddsData = ExtractOddsValue(doc);
 

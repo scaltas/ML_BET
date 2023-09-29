@@ -6,7 +6,6 @@
         public required string Score { get; set; }
 
 
-
         public DateTime? Date { get; set; }
         public required OddsData OddsData { get; set; }
     }

@@ -1,7 +1,3 @@
-using Accord.IO;
-using Accord.MachineLearning.VectorMachines;
-using Accord.MachineLearning.VectorMachines.Learning;
-using Accord.Statistics.Kernels;
 using Accord.Statistics.Models.Regression.Linear;
 using FootballMatchPrediction.API.Models;
 using FootballMatchPrediction.API.Services;
@@ -24,27 +20,54 @@ namespace FootballMatchPrediction.API.Controllers
         [HttpPost]
         public IActionResult PredictMatchOutcome(MatchInputModel input)
         {
-            const int numberOfSeasonsToRetrieve = 1;
+            var homeTeam = input.HomeTeam;
+            var awayTeam = input.AwayTeam;
+            if (string.IsNullOrEmpty(homeTeam) && string.IsNullOrEmpty(awayTeam))
+            {
+                var teams = input.Match
+                    .Split("/")[5]
+                    .Split("-");
+                homeTeam = teams[0];
+                awayTeam = teams[1];
+            }
 
-            var matchData = _matchDataService.ScrapeMatchData(input.TeamId, input.TeamName, numberOfSeasonsToRetrieve);
+            var teamUrls = _matchDataService.GetTeamUrls(input.Match);
+            
+            var oddsScraper = new OddsScraper();
+            var oddsData = oddsScraper.ExtractOddsDataFromUrl(input.Match);
 
-            var prediction = MakePrediction(input, matchData);
+            var homeMatchData = GetMatchData(teamUrls[0], homeTeam);
+            var awayMatchData = GetMatchData(teamUrls[1], awayTeam);
+
+            var predictionForHome = MakePrediction(homeTeam, oddsData.Odds1, homeMatchData, true);
+            var predictionForAway = MakePrediction(awayTeam, oddsData.Odds2, awayMatchData, false);
 
             return Ok(new
             {
-                Prediction = prediction,
-                HomeTeamMatchData = matchData.OrderByDescending(d => d.Date)
+                PredictionForHome = predictionForHome,
+                PredictionForAway = predictionForAway,
+                HomeMatches = homeMatchData,
+                AwayMatches = awayMatchData
             });
         }
 
-        private object MakePrediction(MatchInputModel input, List<ParsedMatch> matchData)
+        private List<ParsedMatch> GetMatchData(string url, string teamName)
+        {
+            return _matchDataService
+                .ScrapeMatchData(url, teamName)
+                .OrderByDescending(item => item.Date)
+                .Take(10)
+                .ToList();
+        }
+
+        private object MakePrediction(string teamName, double odds, List<ParsedMatch> matchData, bool isHome)
         {
             var preprocessedMatches = new List<PreprocessedMatch>();
             foreach (var match in matchData)
             {
                 var teams = match.Match.Split(" - ");
                 var score = match.Score.Split(" - ");
-                var reverse = ReplaceTurkishChars(teams[1]) == input.TeamName;
+                var reverse = ReplaceTurkishChars(teams[1]) == teamName;
                 preprocessedMatches.Add(new PreprocessedMatch()
                 {
                     Odds = reverse ? match.OddsData.Odds2 : match.OddsData.Odds1,
@@ -54,9 +77,9 @@ namespace FootballMatchPrediction.API.Controllers
                 });
             }
 
-            var result1 = Predict(preprocessedMatches, input.Odds1, true);
-            var result2 = Predict(preprocessedMatches, input.Odds1, false);
-            return $"{result1} - {result2}";
+            var result1 = Predict(preprocessedMatches, odds, true);
+            var result2 = Predict(preprocessedMatches, odds, false);
+            return isHome ? $"{result1} - {result2}" : $"{result2} - {result1}";
         }
 
         private object Predict(List<PreprocessedMatch> preprocessedMatches, double odds, bool scored)
@@ -64,14 +87,11 @@ namespace FootballMatchPrediction.API.Controllers
             double[] inputs = preprocessedMatches.Select(match => match.Odds).ToArray();
             double[] outputs = preprocessedMatches.Select(match => Convert.ToDouble(scored ? match.Score.Item1 : match.Score.Item2)).ToArray();
 
-            OrdinaryLeastSquares ols = new OrdinaryLeastSquares();
+            var ols = new OrdinaryLeastSquares();
 
             SimpleLinearRegression regression = ols.Learn(inputs, outputs);
 
             double y = regression.Transform(odds); 
-
-            double s = regression.Slope;     
-            double c = regression.Intercept; 
 
             return y;
         }

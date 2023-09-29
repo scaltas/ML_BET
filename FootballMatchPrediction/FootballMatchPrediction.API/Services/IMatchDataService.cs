@@ -4,5 +4,6 @@ namespace FootballMatchPrediction.API.Services;
 
 public interface IMatchDataService
 {
-    List<ParsedMatch> ScrapeMatchData(int teamId, string teamName, int numberOfSeasonsToRetrieve);
+    List<ParsedMatch> ScrapeMatchData(string url, string teamName);
+    string[] GetTeamUrls(string matchUrl);
 }

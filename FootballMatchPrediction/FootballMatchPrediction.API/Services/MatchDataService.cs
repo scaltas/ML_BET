@@ -6,30 +6,43 @@ namespace FootballMatchPrediction.API.Services
 {
     public class MatchDataService : IMatchDataService
     {
-        public List<ParsedMatch> ScrapeMatchData(int teamId, string teamName, int numberOfSeasonsToRetrieve)
+        public List<ParsedMatch> ScrapeMatchData(string teamUrl, string teamName)
         {
-            var currentSeason = "2023/2024";
-            var currentSeasonParts = currentSeason.Split('/');
-            var currentStartYear = int.Parse(currentSeasonParts[0]);
-            var currentEndYear = int.Parse(currentSeasonParts[1]);
-
             var matchData = new List<ParsedMatch>();
 
-            for (int i = 0; i < numberOfSeasonsToRetrieve; i++)
-            {
-                var startYear = currentStartYear - i;
-                var endYear = currentEndYear - i;
+            var web = new HtmlWeb();
+            
+            if (!teamUrl.Contains("https"))
+                teamUrl = $"https:{teamUrl}";
+            
+            var doc = web.Load(teamUrl);
 
-                var season = $"{startYear}/{endYear}";
-
-                var web = new HtmlWeb();
-                var url = $"https://arsiv.mackolik.com/Team/Default.aspx?id={teamId}&season={season}";
-                var doc = web.Load(url);
-
-                matchData.AddRange(ParseDoc(doc, teamName));
-            }
+            matchData.AddRange(ParseDoc(doc, teamName));
 
             return matchData;
+        }
+
+        public string[] GetTeamUrls(string matchUrl)
+        {
+            var result = new List<string>();
+
+            var web = new HtmlWeb();
+            var doc = web.Load(matchUrl);
+
+            {
+                var element = doc.DocumentNode.SelectSingleNode("//a[@class='left-block-team-name']");
+                string hrefValue = element.GetAttributeValue("href", "");
+                result.Add(hrefValue);
+            }
+
+            {
+                var element = doc.DocumentNode.SelectSingleNode("//a[@class='r-left-block-team-name']");
+                string hrefValue = element.GetAttributeValue("href", "");
+                result.Add(hrefValue);
+            }
+            
+
+            return result.ToArray();
         }
 
         private List<ParsedMatch> ParseDoc(HtmlDocument doc, string teamName)
@@ -51,7 +64,7 @@ namespace FootballMatchPrediction.API.Services
                         if (scoreElement != null)
                         {
                             var score = scoreElement.InnerText.Trim();
-                            if (score == "v")
+                            if (score == "v" || score == "P - P")
                                 continue;
 
                             var match = scoreElement
