@@ -31,13 +31,18 @@ namespace FootballMatchPrediction.API.Controllers
             var homeMatchData = GetMatchData(teamUrls[0], homeTeam);
             var awayMatchData = GetMatchData(teamUrls[1], awayTeam);
 
-            var predictionForHome = MakePrediction(homeTeam, oddsData.Odds1, homeMatchData, true);
-            var predictionForAway = MakePrediction(awayTeam, oddsData.Odds2, awayMatchData, false);
+            var preProcessedHomeData = PreProcess(homeTeam, homeMatchData, true);
+            var preProcessedAwayData = PreProcess(awayTeam, awayMatchData, false);
+
+            var preprocessedMatches = preProcessedHomeData.Concat(preProcessedAwayData).ToList();
+
+            var result1 = Predict(preprocessedMatches, oddsData.Odds1, true);
+            var result2 = Predict(preprocessedMatches, oddsData.Odds1, false);
+            var result = $"{result1} - {result2}";
 
             return Ok(new
             {
-                PredictionForHome = predictionForHome,
-                PredictionForAway = predictionForAway,
+                Prediction = result,
                 HomeMatches = homeMatchData,
                 AwayMatches = awayMatchData
             });
@@ -47,19 +52,20 @@ namespace FootballMatchPrediction.API.Controllers
         {
             return _matchDataService
                 .ScrapeMatchData(url, teamName)
-                .OrderByDescending(item => item.Date)
-                .Take(10)
+                .Where(item => item.Date > DateTime.Now.AddMonths(-1))
                 .ToList();
         }
 
-        private object MakePrediction(string teamName, double odds, List<ParsedMatch> matchData, bool isHome)
+        private List<PreprocessedMatch> PreProcess(string teamName,List<ParsedMatch> matchData, bool isHome)
         {
             var preprocessedMatches = new List<PreprocessedMatch>();
             foreach (var match in matchData)
             {
                 var teams = match.Match.Split(" - ");
                 var score = match.Score.Split(" - ");
-                var reverse = ReplaceTurkishChars(teams[1]) == teamName;
+                var reverse = ReplaceTurkishChars(teams[1]) == RemoveDashes(teamName);
+                reverse = isHome ? reverse : !reverse;
+
                 preprocessedMatches.Add(new PreprocessedMatch()
                 {
                     Odds = reverse ? match.OddsData.Odds2 : match.OddsData.Odds1,
@@ -69,10 +75,10 @@ namespace FootballMatchPrediction.API.Controllers
                 });
             }
 
-            var result1 = Predict(preprocessedMatches, odds, true);
-            var result2 = Predict(preprocessedMatches, odds, false);
-            return isHome ? $"{result1} - {result2}" : $"{result2} - {result1}";
+            return preprocessedMatches;
         }
+
+
 
         private object Predict(List<PreprocessedMatch> preprocessedMatches, double odds, bool scored)
         {
@@ -93,6 +99,12 @@ namespace FootballMatchPrediction.API.Controllers
             return input
                 .Replace("þ", "s")
                 .Replace("ç", "c");
+        }
+
+        private string RemoveDashes(string input)
+        {
+            return input
+                .Replace("-", " ");
         }
     }
 }
