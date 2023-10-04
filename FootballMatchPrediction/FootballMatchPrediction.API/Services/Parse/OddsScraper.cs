@@ -1,8 +1,8 @@
-﻿using FootballMatchPrediction.API.Models;
+﻿using System.Text.RegularExpressions;
+using FootballMatchPrediction.API.Models;
 using HtmlAgilityPack;
-using System.Text.RegularExpressions;
 
-namespace FootballMatchPrediction.API.Services
+namespace FootballMatchPrediction.API.Services.Parse
 {
     public class OddsScraper
     {

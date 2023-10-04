@@ -1,4 +1,7 @@
 using FootballMatchPrediction.API.Services;
+using FootballMatchPrediction.API.Services.DataScience.Prediction;
+using FootballMatchPrediction.API.Services.DataScience.PreProcessing;
+using FootballMatchPrediction.API.Services.Parse;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<IMatchDataService, MatchDataService>();
+builder.Services.AddScoped<IPreProcessorService, PreProcessorService>();
+builder.Services.AddScoped<IPredictorService, PredictorService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -1,8 +1,7 @@
 ﻿using FootballMatchPrediction.API.Models;
 using HtmlAgilityPack;
-using static System.Net.WebRequestMethods;
 
-namespace FootballMatchPrediction.API.Services
+namespace FootballMatchPrediction.API.Services.Parse
 {
     public class MatchDataService : IMatchDataService
     {
