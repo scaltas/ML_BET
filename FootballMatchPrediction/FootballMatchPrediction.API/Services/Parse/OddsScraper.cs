@@ -51,8 +51,10 @@ namespace FootballMatchPrediction.API.Services.Parse
 
                 if (oddsValues.Any())
                 {
-                    if (double.TryParse(oddsValues[5], out double odds1) &&
-                        double.TryParse(oddsValues[7], out double odds2))
+                    var isBasketball = oddsValues[1].Contains("Uzt");
+
+                    if (double.TryParse(isBasketball ? oddsValues[4] : oddsValues[5], out double odds1) &&
+                        double.TryParse(isBasketball ? oddsValues[5] : oddsValues[7], out double odds2))
                     {
                         oddsData.Odds1 = odds1;
                         oddsData.Odds2 = odds2;

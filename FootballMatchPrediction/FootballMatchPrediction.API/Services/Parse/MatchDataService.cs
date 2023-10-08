@@ -1,5 +1,8 @@
-﻿using FootballMatchPrediction.API.Models;
+﻿using Accord.IO;
+using FootballMatchPrediction.API.Models;
 using HtmlAgilityPack;
+using System.Globalization;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace FootballMatchPrediction.API.Services.Parse
 {
@@ -46,7 +49,13 @@ namespace FootballMatchPrediction.API.Services.Parse
 
         private List<ParsedMatch> ParseDoc(HtmlDocument doc, string teamName)
         {
-            var rows = doc.DocumentNode.SelectNodes("//tr[contains(@class, 'row')]");
+            var isBasketball = doc.Text.Contains("Basketball");
+
+            var rows = 
+                isBasketball ?
+                    doc.DocumentNode.SelectNodes("//tr[contains(@class, 'alt')]"):
+                    doc.DocumentNode.SelectNodes("//tr[contains(@class, 'row')]");
+            
             var xpathExpression = $".//a[contains(@href, '{teamName}')]";
 
             var matches = new List<ParsedMatch>();
@@ -65,26 +74,63 @@ namespace FootballMatchPrediction.API.Services.Parse
                             var score = scoreElement.InnerText.Trim();
                             if (score == "v" || score == "P - P")
                                 continue;
+                            if (isBasketball)
+                                score = score.Replace("-", " - ");
 
-                            var match = scoreElement
-                                .SelectNodes(".//meta[contains(@itemprop, 'name')]")?
-                                .Select(meta => meta.GetAttributeValue("content", ""))?
-                                .FirstOrDefault();
+                            var match = "";
+                            if (isBasketball)
+                            {
+                                string[] lines = row.InnerText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                                if (lines.Length > 0)
+                                {
+                                    match = $"{lines[7].Trim()} - {lines[15].Trim()}";
+                                }
+                            }
+                            else
+                            {
+                                match = scoreElement
+                                    .SelectNodes(".//meta[contains(@itemprop, 'name')]")?
+                                    .Select(meta => meta.GetAttributeValue("content", ""))?
+                                    .FirstOrDefault();
+                            }
 
-                            var dateMeta = scoreElement
-                                .SelectNodes(".//meta[contains(@itemprop, 'startDate')]")?
-                                .Select(meta => meta.GetAttributeValue("content", ""))?
-                                .FirstOrDefault();
+                            var dateMeta = "";
+                            if (isBasketball)
+                            {
+                                string[] lines = row.InnerText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                                if (lines.Length > 0)
+                                {
+                                    dateMeta = lines[1].Trim();
+                                }
+                            }
+                            else
+                                dateMeta = scoreElement
+                                    .SelectNodes(".//meta[contains(@itemprop, 'startDate')]")?
+                                    .Select(meta => meta.GetAttributeValue("content", ""))?
+                                    .FirstOrDefault();
 
-                            if (match != null)
+                            if (match != null || isBasketball)
                             {
                                 DateTime? matchDate = null;
                                 if (!string.IsNullOrWhiteSpace(dateMeta))
                                 {
-                                    if (DateTime.TryParse(dateMeta, out DateTime parsedDate))
+                                    if (isBasketball)
                                     {
-                                        matchDate = parsedDate;
+                                        string[] formats = { "dd.MM.yyyy", "d.MM.yyyy" };
+
+                                        if (DateTime.TryParseExact(dateMeta, formats, CultureInfo.InvariantCulture,
+                                                DateTimeStyles.None, out DateTime parsedDate))
+                                        {
+                                            matchDate = parsedDate;
+                                        }
                                     }
+                                    else
+                                    {
+                                        if (DateTime.TryParse(dateMeta, out DateTime parsedDate))
+                                        {
+                                            matchDate = parsedDate;
+                                        }
+                                    } 
                                 }
 
                                 // Extract and parse the odds data by visiting the odds page URL
@@ -97,7 +143,7 @@ namespace FootballMatchPrediction.API.Services.Parse
                                     oddsData = oddsScraper.ExtractOddsDataFromUrl(oddsPageUrl);
                                 }
 
-                                if(oddsData.Odds1 == 0 || oddsData.Odds2_5Over == 0)
+                                if(oddsData.Odds1 == 0)
                                     continue;
                                 
                                 matches.Add(new ParsedMatch()
