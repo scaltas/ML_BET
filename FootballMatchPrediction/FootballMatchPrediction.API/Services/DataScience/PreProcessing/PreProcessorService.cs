@@ -19,7 +19,8 @@ public class PreProcessorService : IPreProcessorService
                 Odds = reverse ? match.OddsData.Odds2 : match.OddsData.Odds1,
                 Score = reverse
                     ? new Tuple<int, int>(Convert.ToInt32(score[1]), Convert.ToInt32(score[0]))
-                    : new Tuple<int, int>(Convert.ToInt32(score[0]), Convert.ToInt32(score[1]))
+                    : new Tuple<int, int>(Convert.ToInt32(score[0]), Convert.ToInt32(score[1])),
+                DateTime = match.Date.GetValueOrDefault()
             });
         }
 

@@ -40,7 +40,10 @@ namespace FootballMatchPrediction.API.Controllers
             var preProcessedHomeData = _preProcessorService.PreProcess(homeTeam, homeMatchData, true);
             var preProcessedAwayData = _preProcessorService.PreProcess(awayTeam, awayMatchData, false);
 
-            var preprocessedMatches = preProcessedHomeData.Concat(preProcessedAwayData).ToList();
+            var preprocessedMatches = preProcessedHomeData.Concat(preProcessedAwayData)
+                .OrderByDescending(d => d.DateTime)
+                .Take(10)
+                .ToList();
 
             var result1 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, true);
             var result2 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, false);
@@ -49,17 +52,18 @@ namespace FootballMatchPrediction.API.Controllers
             return Ok(new
             {
                 Prediction = result,
-                HomeMatches = homeMatchData,
-                AwayMatches = awayMatchData
+                Matches = homeMatchData
+                    .Concat(awayMatchData)
+                    .OrderByDescending(m => m.Date)
+                    .Take(10)
+                    .ToList()
             });
         }
 
         private List<ParsedMatch> GetMatchData(string url, string teamName)
         {
             return _matchDataService
-                .ScrapeMatchData(url, teamName)
-                .Where(item => item.Date > DateTime.Now.AddMonths(-1))
-                .ToList();
+                .ScrapeMatchData(url, teamName);
         }
 
     }

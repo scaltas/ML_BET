@@ -24,23 +24,6 @@ namespace FootballMatchPrediction.API.Services.Parse
         {
             var oddsData = new OddsData();
 
-            // Find the element with text '2,5 Alt/Üst'
-            var altUstElement = doc.DocumentNode.SelectSingleNode("//a[@class='compare-rate-bg-up' and contains(@href, '2,5 Alt/Üst')]");
-
-            if (altUstElement != null)
-            {
-                var href = altUstElement.GetAttributeValue("href", "");
-                var oddsValues = Regex.Matches(href, @"'([^']*)'").Cast<Match>().Select(m => m.Groups[1].Value).ToList();
-
-                if (oddsValues.Any())
-                {
-                    if (double.TryParse(oddsValues[5], out double overOdds))
-                    {
-                        oddsData.Odds2_5Over = overOdds;
-                    }
-                }
-            }
-
             // Find the element with text 'Maç Sonucu'
             var macSonucuElement = doc.DocumentNode.SelectSingleNode("//a[@class='compare-rate-bg-up' and contains(@href, 'Maç Sonucu')]");
 
