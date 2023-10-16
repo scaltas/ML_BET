@@ -34,13 +34,13 @@ namespace FootballMatchPrediction.API.Services.Parse
             {
                 var element = doc.DocumentNode.SelectSingleNode("//a[@class='left-block-team-name']");
                 string hrefValue = element.GetAttributeValue("href", "");
-                result.Add(hrefValue + "/2024");
+                result.Add(hrefValue);
             }
 
             {
                 var element = doc.DocumentNode.SelectSingleNode("//a[@class='r-left-block-team-name']");
                 string hrefValue = element.GetAttributeValue("href", "");
-                result.Add(hrefValue + "/2024");
+                result.Add(hrefValue);
             }
             
 
