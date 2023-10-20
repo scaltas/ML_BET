@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballMatchPrediction.API", "FootballMatchPrediction.API\FootballMatchPrediction.API.csproj", "{33D6277A-6399-498B-832E-B5425B66342F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FootballMatchPrediction.API", "FootballMatchPrediction.API\FootballMatchPrediction.API.csproj", "{33D6277A-6399-498B-832E-B5425B66342F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FootballMatchPrediction.UI", "FootballMatchPrediction.UI\FootballMatchPrediction.UI.csproj", "{ED6007A6-0667-4938-B7F0-927A140C17B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{33D6277A-6399-498B-832E-B5425B66342F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33D6277A-6399-498B-832E-B5425B66342F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33D6277A-6399-498B-832E-B5425B66342F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED6007A6-0667-4938-B7F0-927A140C17B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED6007A6-0667-4938-B7F0-927A140C17B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED6007A6-0667-4938-B7F0-927A140C17B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED6007A6-0667-4938-B7F0-927A140C17B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,74 @@
+﻿@model List<MatchScore>
+
+<style>
+    .match-scores-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px;
+    }
+
+        .match-scores-table th, .match-scores-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .match-scores-table th {
+            background-color: #333;
+            color: white;
+        }
+
+        .match-scores-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .match-scores-table tr:hover {
+            background-color: #ddd;
+        }
+
+    /* Add classes for the checkmark and cross icons */
+    .checkmark {
+        color: green;
+    }
+
+    .cross {
+        color: red;
+    }
+</style>
+
+<table class="match-scores-table">
+    <thead>
+        <tr>
+            <th>Match</th>
+            <th>Teams</th>
+            <th>Predicted Score</th>
+            <th>Actual Score</th>
+            <th>Match Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var score in Model)
+        {
+            <tr>
+                <td>@score.MatchId</td>
+                <td>@($"{score.HomeTeam} - {score.AwayTeam}")</td>
+                <td>@score.PredictedScore</td>
+                <td>@score.ActualScore</td>
+                <td>@score.MatchDate.ToShortDateString()</td>
+
+                <!-- Check for equality and display the appropriate icon -->
+                <td>
+                    @if (score.PredictedScore == score.ActualScore)
+                    {
+                        <span class="checkmark">&#10003;</span>
+                    }
+                    else
+                    {
+                        <span class="cross">&#10007;</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
