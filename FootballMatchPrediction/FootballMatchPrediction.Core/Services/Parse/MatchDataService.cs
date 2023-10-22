@@ -1,10 +1,7 @@
-﻿using Accord.IO;
-using FootballMatchPrediction.API.Models;
+﻿using FootballMatchPrediction.Core.Models;
 using HtmlAgilityPack;
-using System.Globalization;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace FootballMatchPrediction.API.Services.Parse
+namespace FootballMatchPrediction.Core.Services.Parse
 {
     public class MatchDataService : IMatchDataService
     {

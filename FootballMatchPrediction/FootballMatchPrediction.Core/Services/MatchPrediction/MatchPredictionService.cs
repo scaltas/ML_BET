@@ -1,9 +1,9 @@
-﻿using FootballMatchPrediction.API.Models;
-using FootballMatchPrediction.API.Services;
-using FootballMatchPrediction.API.Services.DataScience.Prediction;
-using FootballMatchPrediction.API.Services.DataScience.PreProcessing;
-using FootballMatchPrediction.API.Services.MatchPrediction;
-using FootballMatchPrediction.API.Services.Parse;
+﻿using FootballMatchPrediction.Core.Models;
+using FootballMatchPrediction.Core.Services.DataScience.Prediction;
+using FootballMatchPrediction.Core.Services.DataScience.PreProcessing;
+using FootballMatchPrediction.Core.Services.Parse;
+
+namespace FootballMatchPrediction.Core.Services.MatchPrediction;
 
 public class MatchPredictionService : IMatchPredictionService
 {
@@ -50,7 +50,11 @@ public class MatchPredictionService : IMatchPredictionService
                 .Concat(awayMatchData)
                 .OrderByDescending(m => m.Date)
                 .Take(10)
-                .ToList()
+                .ToList(),
+            HomeTeam = homeTeam,
+            AwayTeam = awayTeam,
+            MatchDate = DateTime.Now,
+            ActualScore = ""
         };
     }
 

@@ -1,64 +1,78 @@
-﻿using FootballMatchPrediction.UI.Models;
+﻿using FootballMatchPrediction.Core.Models;
+using FootballMatchPrediction.Core.Services.MatchPrediction;
+using FootballMatchPrediction.UI.Models;
+using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading.Tasks;
+
+namespace FootballMatchPrediction.UI.Controllers;
 
 public class MatchScoreController : Controller
 {
-    private readonly HttpClient _httpClient;
-
-    public MatchScoreController()
+    private readonly IMatchPredictionService _predictionService;
+    public MatchScoreController(IMatchPredictionService predictionService)
     {
-        _httpClient = new HttpClient();
-        // Configure the base URL for your backend API.
-        _httpClient.BaseAddress = new Uri("https://your-backend-api-url.com/");
+        _predictionService = predictionService;
     }
 
     public async Task<IActionResult> Index()
     {
-        return View(GetMockMatchScores());
+        string url = "https://arsiv.mackolik.com/Program/Program.aspx";
+        var numbers = await GetNumbersFromWebsite(url);
 
-        // Fetch match scores from the backend API.
-        /*var response = await _httpClient.GetAsync("api/matchscores");
-        if (response.IsSuccessStatusCode)
+        var viewModel = new List<MatchScore>();
+
+        foreach (string number in numbers)
         {
-            var content = await response.Content.ReadAsStringAsync();
-            var matchScores = JsonSerializer.Deserialize<List<MatchScore>>(content);
-            return View(matchScores);
+            var result = _predictionService.PredictMatchOutcome(new MatchInputModel()
+            {
+                Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
+            });
+            
+            viewModel.Add(new MatchScore()
+            {
+                MatchId = Convert.ToInt32(number),
+                HomeTeam = result.HomeTeam,
+                AwayTeam = result.AwayTeam,
+                PredictedScore = result.Prediction,
+                ActualScore = result.ActualScore,
+                MatchDate = result.MatchDate
+            });
         }
-        else
-        {
-            // Handle the error
-            return View("Error");
-        }*/
+
+        return View(viewModel);
+
     }
 
-    private List<MatchScore> GetMockMatchScores()
+    static async Task<string[]> GetNumbersFromWebsite(string url)
     {
-        var mockMatchScores = new List<MatchScore>
+        using (HttpClient client = new HttpClient())
         {
-            new MatchScore
-            {
-                MatchId = 1,
-                HomeTeam = "Team A",
-                AwayTeam = "Team B",
-                PredictedScore = "2 - 1", // Successful prediction
-                ActualScore = "2 - 1",    // Actual score matches prediction
-                MatchDate = new DateTime(2023, 10, 15)
-            },
-            new MatchScore
-            {
-                MatchId = 2,
-                HomeTeam = "Team C",
-                AwayTeam = "Team D",
-                PredictedScore = "0 - 2",
-                ActualScore = "2 - 2",    // Actual score does not match prediction
-                MatchDate = new DateTime(2023, 10, 17)
-            },
-            // Add more sample match scores here
-        };
+            string htmlContent = await client.GetStringAsync(url);
 
-        return mockMatchScores;
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(htmlContent);
+
+            var linkNodes = doc.DocumentNode.SelectNodes("//a[contains(@href, 'popMatch')]");
+            if (linkNodes == null)
+            {
+                return Array.Empty<string>();
+            }
+
+            return linkNodes.Select(node => ExtractNumber(node.GetAttributeValue("href", ""))).ToArray();
+        }
+    }
+
+    static string ExtractNumber(string input)
+    {
+        int startIndex = input.IndexOf("popMatch(");
+        int endIndex = input.IndexOf(",\"ByLeague\"", startIndex);
+
+        if (startIndex != -1 && endIndex != -1)
+        {
+            startIndex += "popMatch(".Length;
+            return input.Substring(startIndex, endIndex - startIndex);
+        }
+
+        return string.Empty;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using HtmlAgilityPack;
 
-namespace FootballMatchPrediction.API.Services.Parse
+namespace FootballMatchPrediction.Core.Services.Parse
 {
     public static class ParserFactory
     {

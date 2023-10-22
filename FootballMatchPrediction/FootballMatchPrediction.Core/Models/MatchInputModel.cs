@@ -1,4 +1,4 @@
-﻿namespace FootballMatchPrediction.API.Models;
+﻿namespace FootballMatchPrediction.Core.Models;
 
 public class MatchInputModel
 {

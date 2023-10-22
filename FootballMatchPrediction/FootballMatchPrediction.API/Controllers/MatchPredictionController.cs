@@ -1,5 +1,5 @@
-using FootballMatchPrediction.API.Models;
-using FootballMatchPrediction.API.Services.MatchPrediction;
+using FootballMatchPrediction.Core.Models;
+using FootballMatchPrediction.Core.Services.MatchPrediction;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FootballMatchPrediction.API.Controllers

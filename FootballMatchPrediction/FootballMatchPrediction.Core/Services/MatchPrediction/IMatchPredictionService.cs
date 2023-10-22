@@ -1,6 +1,6 @@
-﻿using FootballMatchPrediction.API.Models;
+﻿using FootballMatchPrediction.Core.Models;
 
-namespace FootballMatchPrediction.API.Services.MatchPrediction
+namespace FootballMatchPrediction.Core.Services.MatchPrediction
 {
     public interface IMatchPredictionService
     {

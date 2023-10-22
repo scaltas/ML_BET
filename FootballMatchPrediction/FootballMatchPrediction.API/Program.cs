@@ -1,8 +1,7 @@
-using FootballMatchPrediction.API.Services;
-using FootballMatchPrediction.API.Services.DataScience.Prediction;
-using FootballMatchPrediction.API.Services.DataScience.PreProcessing;
-using FootballMatchPrediction.API.Services.MatchPrediction;
-using FootballMatchPrediction.API.Services.Parse;
+using FootballMatchPrediction.Core.Services.DataScience.Prediction;
+using FootballMatchPrediction.Core.Services.DataScience.PreProcessing;
+using FootballMatchPrediction.Core.Services.MatchPrediction;
+using FootballMatchPrediction.Core.Services.Parse;
 
 var builder = WebApplication.CreateBuilder(args);
 

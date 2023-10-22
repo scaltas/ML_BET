@@ -1,6 +1,6 @@
-﻿using FootballMatchPrediction.API.Models;
+﻿using FootballMatchPrediction.Core.Models;
 
-namespace FootballMatchPrediction.API.Services.DataScience.PreProcessing
+namespace FootballMatchPrediction.Core.Services.DataScience.PreProcessing
 {
     public interface IPreProcessorService
     {
