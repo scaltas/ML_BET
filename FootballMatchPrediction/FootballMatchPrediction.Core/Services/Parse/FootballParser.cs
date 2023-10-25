@@ -25,8 +25,10 @@ public class FootballParser : IParser
                     if (scoreElement != null)
                     {
                         var score = scoreElement.InnerText.Trim();
-                        if (score == "v" || score == "P - P")
+                        if (score == "v" || score == "P - P" || !score.Contains(" - "))
                             continue;
+
+                        var firstHalfScore = row.ChildNodes[17].InnerText;
 
                         var match = scoreElement
                             .SelectNodes(".//meta[contains(@itemprop, 'name')]")?
@@ -68,6 +70,7 @@ public class FootballParser : IParser
                             {
                                 Match = match,
                                 Score = score,
+                                FirstHalfScore = firstHalfScore,
                                 Date = matchDate,
                                 OddsData = oddsData
                             });

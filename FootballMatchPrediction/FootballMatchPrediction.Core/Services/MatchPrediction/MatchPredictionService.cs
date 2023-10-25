@@ -14,7 +14,7 @@ public class MatchPredictionService : IMatchPredictionService
     public MatchPredictionService(IMatchDataService matchDataService, IPreProcessorService preProcessorService, IPredictorService predictorService)
     {
         _matchDataService = matchDataService;
-        _preProcessorService = preProcessorService;
+        _preProcessorService = preProcessorService; 
         _predictorService = predictorService;
     }
 
@@ -43,9 +43,14 @@ public class MatchPredictionService : IMatchPredictionService
         var result2 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, false);
         var result = $"{result1} - {result2}";
 
+        var firstHalfResult1 = _predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, true);
+        var firstHalfResult2 = _predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, false);
+        var firstHalfResult = $"{firstHalfResult1} - {firstHalfResult2}";
+
         return new MatchPredictionResult
         {
             Prediction = result,
+            FirstHalfPrediction = firstHalfResult,
             Matches = homeMatchData
                 .Concat(awayMatchData)
                 .OrderByDescending(m => m.Date)

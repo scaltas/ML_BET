@@ -11,6 +11,7 @@ public class PreProcessorService : IPreProcessorService
         {
             var teams = match.Match.Split(" - ");
             var score = match.Score.Split(" - ");
+            var firstHalfScore = match.FirstHalfScore.Split("-");
             var reverse = ReplaceTurkishChars(teams[1]) == RemoveDashes(teamName);
             reverse = isHome ? reverse : !reverse;
 
@@ -20,6 +21,9 @@ public class PreProcessorService : IPreProcessorService
                 Score = reverse
                     ? new Tuple<int, int>(Convert.ToInt32(score[1]), Convert.ToInt32(score[0]))
                     : new Tuple<int, int>(Convert.ToInt32(score[0]), Convert.ToInt32(score[1])),
+                FirstHalfScore = reverse
+                    ? new Tuple<int, int>(Convert.ToInt32(firstHalfScore[1]), Convert.ToInt32(firstHalfScore[0]))
+                    : new Tuple<int, int>(Convert.ToInt32(firstHalfScore[0]), Convert.ToInt32(firstHalfScore[1])),
                 DateTime = match.Date.GetValueOrDefault()
             });
         }

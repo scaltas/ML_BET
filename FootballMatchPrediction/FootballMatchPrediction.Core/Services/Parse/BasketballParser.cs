@@ -78,6 +78,7 @@ public class BasketballParser : IParser
                         {
                             Match = match,
                             Score = score,
+                            FirstHalfScore = "-",
                             Date = matchDate,
                             OddsData = oddsData
                         });
