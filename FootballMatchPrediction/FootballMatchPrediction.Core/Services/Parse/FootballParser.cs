@@ -30,6 +30,9 @@ public class FootballParser : IParser
 
                         var firstHalfScore = row.ChildNodes[17].InnerText;
 
+                        if (!firstHalfScore.Contains("-"))
+                            continue;
+
                         var match = scoreElement
                             .SelectNodes(".//meta[contains(@itemprop, 'name')]")?
                             .Select(meta => meta.GetAttributeValue("content", ""))?

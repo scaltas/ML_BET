@@ -26,10 +26,12 @@ public class BasketballParser : IParser
                     if (scoreElement != null)
                     {
                         var score = scoreElement.InnerText.Trim();
-                        if (score == "v" || score == "P - P")
+                        if (score == "v" || score == "P - P" || score == "0-0")
                             continue;
 
                         score = score.Replace("-", " - ");
+
+                        var firstHalfScore = row.ChildNodes[21].InnerText.Split()[1];
 
                         var match = "";
                         {
@@ -78,7 +80,7 @@ public class BasketballParser : IParser
                         {
                             Match = match,
                             Score = score,
-                            FirstHalfScore = "-",
+                            FirstHalfScore = firstHalfScore,
                             Date = matchDate,
                             OddsData = oddsData
                         });
