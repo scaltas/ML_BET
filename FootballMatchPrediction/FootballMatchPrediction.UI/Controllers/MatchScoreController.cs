@@ -13,37 +13,38 @@ public class MatchScoreController : Controller
     {
         _predictionService = predictionService;
     }
-
     public async Task<IActionResult> Index()
+    {
+        return View();
+    }
+    public async Task<IActionResult> GetMatchPrediction(string number)
+    {
+        var result = _predictionService.PredictMatchOutcome(new MatchInputModel()
+        {
+            Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
+        });
+
+        var viewModel = new MatchScore()
+        {
+            MatchId = Convert.ToInt32(number),
+            HomeTeam = result.HomeTeam,
+            AwayTeam = result.AwayTeam,
+            FirstHalfScore = result.FirstHalfPrediction,
+            PredictedScore = result.Prediction,
+            MatchDate = result.MatchDate
+        };
+
+        return Json(viewModel);
+    }
+
+    public async Task<IActionResult> GetMatchNumbers()
     {
         string url = "https://arsiv.mackolik.com/Program/Program.aspx";
         var numbers = await GetNumbersFromWebsite(url);
-
-        var viewModel = new List<MatchScore>();
-
-        foreach (string number in numbers)
-        {
-            var result = _predictionService.PredictMatchOutcome(new MatchInputModel()
-            {
-                Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
-            });
-            
-            viewModel.Add(new MatchScore()
-            {
-                MatchId = Convert.ToInt32(number),
-                HomeTeam = result.HomeTeam,
-                AwayTeam = result.AwayTeam,
-                PredictedScore = result.Prediction,
-                ActualScore = result.ActualScore,
-                MatchDate = result.MatchDate
-            });
-        }
-
-        return View(viewModel);
-
+        return Json(numbers);
     }
 
-    static async Task<string[]> GetNumbersFromWebsite(string url)
+    private async Task<string[]> GetNumbersFromWebsite(string url)
     {
         using (HttpClient client = new HttpClient())
         {
@@ -61,8 +62,7 @@ public class MatchScoreController : Controller
             return linkNodes.Select(node => ExtractNumber(node.GetAttributeValue("href", ""))).ToArray();
         }
     }
-
-    static string ExtractNumber(string input)
+    private string ExtractNumber(string input)
     {
         int startIndex = input.IndexOf("popMatch(");
         int endIndex = input.IndexOf(",\"ByLeague\"", startIndex);

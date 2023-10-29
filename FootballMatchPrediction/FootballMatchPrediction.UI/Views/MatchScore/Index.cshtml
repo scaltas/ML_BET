@@ -41,34 +41,88 @@
         <tr>
             <th>Match</th>
             <th>Teams</th>
-            <th>Predicted Score</th>
-            <th>Actual Score</th>
+            <th>First Half Score</th>
+            <th>Score</th>
             <th>Match Date</th>
             <th>Status</th>
         </tr>
     </thead>
-    <tbody>
-        @foreach (var score in Model)
-        {
-            <tr>
-                <td>@score.MatchId</td>
-                <td>@($"{score.HomeTeam} - {score.AwayTeam}")</td>
-                <td>@score.PredictedScore</td>
-                <td>@score.ActualScore</td>
-                <td>@score.MatchDate.ToShortDateString()</td>
-
-                <!-- Check for equality and display the appropriate icon -->
-                <td>
-                    @if (score.PredictedScore == score.ActualScore)
-                    {
-                        <span class="checkmark">&#10003;</span>
-                    }
-                    else
-                    {
-                        <span class="cross">&#10007;</span>
-                    }
-                </td>
-            </tr>
-        }
+    <tbody id="match-score-body">
     </tbody>
 </table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Function to fetch match numbers
+        function fetchMatchNumbers() {
+            return new Promise(function (resolve, reject) {
+                $.get("/MatchScore/GetMatchNumbers", function (numbers) {
+                    resolve(numbers);
+                });
+            });
+        }
+
+        // Function to fetch a single match prediction
+        function fetchSingleMatch(matchNumber) {
+            return new Promise(function (resolve, reject) {
+                $.get("/MatchScore/GetMatchPrediction?number=" + matchNumber, function (data) {
+                    resolve(data);
+                });
+            });
+        }
+
+        // Function to fetch and display match predictions asynchronously in batches of ten
+        async function fetchMatchPredictionsInBatches() {
+            const matchNumbers = await fetchMatchNumbers();
+            const batchSize = 10;
+            let currentIndex = 0;
+            let totalProcessed = 0;
+
+            while (currentIndex < matchNumbers.length) {
+                const batch = matchNumbers.slice(currentIndex, currentIndex + batchSize);
+                const promises = batch.map(matchNumber => fetchSingleMatch(matchNumber));
+
+                const batchResults = await Promise.all(promises);
+
+                batchResults.forEach(data => {
+                    var row = '<tr>' +
+                        '<td>' + data.matchId + '</td>' +
+                        '<td>' + data.homeTeam + ' - ' + data.awayTeam + '</td>' +
+                        '<td>' + data.firstHalfScore + '</td>' +
+                        '<td>' + data.predictedScore + '</td>' +
+                        '<td>' + new Date(data.matchDate).toLocaleDateString() + '</td>' +
+                        '<td>';
+                    if (data.predictedScore == data.actualScore) {
+                        row += '<span class="checkmark">&#10003;</span>';
+                    } else {
+                        row += '<span class="cross">&#10007;</span>';
+                    }
+                    row += '</td></tr>';
+                    $("#match-score-body").append(row);
+
+                    totalProcessed++;
+                });
+
+                currentIndex += batchSize;
+
+                // Update the total processed and total match numbers
+                $("#total-processed").text(totalProcessed);
+                $("#total-matches").text(matchNumbers.length);
+            }
+        }
+
+        // Start fetching match predictions in batches
+        fetchMatchPredictionsInBatches();
+    });
+</script>
+
+<div id="totals">
+    Total Processed: <span id="total-processed">0</span> / Total Matches: <span id="total-matches">0</span>
+</div>
+
+
+
+
+
