@@ -31,7 +31,11 @@ public class BasketballParser : IParser
 
                         score = score.Replace("-", " - ");
 
-                        var firstHalfScore = row.ChildNodes[21].InnerText.Split()[1];
+                        var firstHalfScoreArr = row.ChildNodes[21].InnerText.Split();
+                        if (firstHalfScoreArr.Length != 2)
+                            continue;
+
+                        var firstHalfScore = firstHalfScoreArr[1];
 
                         var match = "";
                         {

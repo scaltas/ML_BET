@@ -44,6 +44,36 @@ namespace FootballMatchPrediction.Core.Services.Parse
             return result.ToArray();
         }
 
+        public async Task<string[]> GetMatchIdsFromWebsite()
+        {
+            using HttpClient client = new HttpClient();
+            string htmlContent = await client.GetStringAsync("https://arsiv.mackolik.com/Program/Program.aspx");
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(htmlContent);
+
+            var linkNodes = doc.DocumentNode.SelectNodes("//a[contains(@href, 'popMatch')]");
+            if (linkNodes == null)
+            {
+                return Array.Empty<string>();
+            }
+
+            return linkNodes.Select(node => ExtractNumber(node.GetAttributeValue("href", ""))).ToArray();
+        }
+        private string ExtractNumber(string input)
+        {
+            int startIndex = input.IndexOf("popMatch(");
+            int endIndex = input.IndexOf(",\"ByLeague\"", startIndex);
+
+            if (startIndex != -1 && endIndex != -1)
+            {
+                startIndex += "popMatch(".Length;
+                return input.Substring(startIndex, endIndex - startIndex);
+            }
+
+            return string.Empty;
+        }
+
         private List<ParsedMatch> ParseDoc(HtmlDocument doc, string teamName)
         {
             var parser = ParserFactory.GetParser(doc);
