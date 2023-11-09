@@ -41,11 +41,11 @@ public class MatchPredictionService : IMatchPredictionService
 
         var result1 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, true);
         var result2 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, false);
-        var result = $"{result1} - {result2}";
+        var result = $"{result1:0.00} - {result2:0.00}";
 
         var firstHalfResult1 = _predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, true);
         var firstHalfResult2 = _predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, false);
-        var firstHalfResult = $"{firstHalfResult1} - {firstHalfResult2}";
+        var firstHalfResult = $"{firstHalfResult1:0.00} - {firstHalfResult2:0.00}";
 
         return new MatchPredictionResult
         {
@@ -65,6 +65,31 @@ public class MatchPredictionService : IMatchPredictionService
 
     private List<ParsedMatch> GetMatchData(string url, string teamName)
     {
-        return _matchDataService.ScrapeMatchData(url, teamName);
+        var matches = _matchDataService.ScrapeMatchData(url, teamName);
+
+        var recentMatches = matches
+            .OrderByDescending(m => m.Date)
+            .Take(10)
+            .ToList();
+
+
+        foreach (var match in recentMatches)
+        {
+            var oddsData = new OddsData();
+            if (!string.IsNullOrWhiteSpace(match.MatchUrl))
+            {
+                var oddsScraper = new OddsScraper();
+                oddsData = oddsScraper.ExtractOddsDataFromUrl(match.MatchUrl);
+            }
+
+            if (oddsData.Odds1 == 0)
+                continue;
+
+            match.OddsData = oddsData;
+        }
+
+        return recentMatches
+            .Where(m => m.OddsData != null)
+            .ToList();
     }
 }

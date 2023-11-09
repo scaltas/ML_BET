@@ -6,4 +6,5 @@ public interface IMatchPredictionRepository
 {
     Task Insert(MatchPredictionResult result);
     Task Insert(IEnumerable<MatchPredictionResult> results);
+    Task DeleteAll();
 }

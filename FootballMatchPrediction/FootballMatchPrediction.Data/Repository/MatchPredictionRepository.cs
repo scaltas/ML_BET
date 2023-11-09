@@ -1,4 +1,5 @@
 ﻿using FootballMatchPrediction.Data.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace FootballMatchPrediction.Data.Repository;
 
@@ -20,6 +21,13 @@ public class MatchPredictionRepository : IMatchPredictionRepository
     public async Task Insert(IEnumerable<MatchPredictionResult> results)
     {
         _context.MatchPredictionResults.AddRange(results);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAll()
+    {
+        var allResults = await _context.MatchPredictionResults.ToListAsync();
+        _context.MatchPredictionResults.RemoveRange(allResults);
         await _context.SaveChangesAsync();
     }
 }

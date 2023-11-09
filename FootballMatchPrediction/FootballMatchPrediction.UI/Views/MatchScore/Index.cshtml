@@ -44,6 +44,7 @@
             <th>First Half Score</th>
             <th>Score</th>
             <th>Match Date</th>
+            <th>Sample</th>
             <th>Status</th>
         </tr>
     </thead>
@@ -93,6 +94,7 @@
                         '<td>' + data.firstHalfScore + '</td>' +
                         '<td>' + data.predictedScore + '</td>' +
                         '<td>' + new Date(data.matchDate).toLocaleDateString() + '</td>' +
+                        '<td>' + data.sampleCount + '</td>' +
                         '<td>';
                     if (data.predictedScore == data.actualScore) {
                         row += '<span class="checkmark">&#10003;</span>';

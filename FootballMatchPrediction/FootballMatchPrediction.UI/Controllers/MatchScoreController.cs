@@ -33,7 +33,8 @@ public class MatchScoreController : Controller
             AwayTeam = result.AwayTeam,
             FirstHalfScore = result.FirstHalfPrediction,
             PredictedScore = result.Prediction,
-            MatchDate = result.MatchDate
+            MatchDate = result.MatchDate,
+            SampleCount = result.Matches.Count
         };
 
         return Json(viewModel);

@@ -70,24 +70,16 @@ public class BasketballParser : IParser
                         // Extract and parse the odds data by visiting the odds page URL
                         var oddsPageUrl = scoreElement.Attributes["href"]?.Value;
 
-                        var oddsData = new OddsData();
-                        if (!string.IsNullOrWhiteSpace(oddsPageUrl))
-                        {
-                            var oddsScraper = new OddsScraper();
-                            oddsData = oddsScraper.ExtractOddsDataFromUrl(oddsPageUrl);
-                        }
+                        if(oddsPageUrl != null )
 
-                        if (oddsData.Odds1 == 0)
-                            continue;
-
-                        matches.Add(new ParsedMatch()
-                        {
-                            Match = match,
-                            Score = score,
-                            FirstHalfScore = firstHalfScore,
-                            Date = matchDate,
-                            OddsData = oddsData
-                        });
+                            matches.Add(new ParsedMatch()
+                            {
+                                Match = match,
+                                Score = score,
+                                FirstHalfScore = firstHalfScore,
+                                Date = matchDate,
+                                MatchUrl = oddsPageUrl
+                            });
                     }
                 }
             }

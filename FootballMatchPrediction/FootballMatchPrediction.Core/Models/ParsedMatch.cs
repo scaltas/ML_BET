@@ -7,6 +7,7 @@
         public required string FirstHalfScore { get; set; }
 
         public DateTime? Date { get; set; }
-        public required OddsData OddsData { get; set; }
+        public OddsData? OddsData { get; set; }
+        public required string MatchUrl { get; set; }
     }
 }
