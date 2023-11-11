@@ -5,7 +5,7 @@ namespace FootballMatchPrediction.Core.Services.Parse
 {
     public class MatchDataService : IMatchDataService
     {
-        public List<ParsedMatch> ScrapeMatchData(string teamUrl, string teamName)
+        public async Task<List<ParsedMatch>> ScrapeMatchData(string teamUrl, string teamName)
         {
             var matchData = new List<ParsedMatch>();
 
@@ -14,19 +14,19 @@ namespace FootballMatchPrediction.Core.Services.Parse
             if (!teamUrl.Contains("https"))
                 teamUrl = $"https:{teamUrl}";
             
-            var doc = web.Load(teamUrl);
+            var doc = await web.LoadFromWebAsync(teamUrl);
 
             matchData.AddRange(ParseDoc(doc, teamName));
 
             return matchData;
         }
 
-        public string[] GetTeamUrls(string matchUrl)
+        public async Task<string[]> GetTeamUrls(string matchUrl)
         {
             var result = new List<string>();
 
             var web = new HtmlWeb();
-            var doc = web.Load(matchUrl);
+            var doc = await web.LoadFromWebAsync(matchUrl);
 
             {
                 var element = doc.DocumentNode.SelectSingleNode("//a[@class='left-block-team-name']");

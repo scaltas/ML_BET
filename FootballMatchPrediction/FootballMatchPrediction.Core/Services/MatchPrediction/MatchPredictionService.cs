@@ -18,18 +18,18 @@ public class MatchPredictionService : IMatchPredictionService
         _predictorService = predictorService;
     }
 
-    public MatchPredictionResult PredictMatchOutcome(MatchInputModel input)
+    public async Task<MatchPredictionResult> PredictMatchOutcome(MatchInputModel input)
     {
-        var teamUrls = _matchDataService.GetTeamUrls(input.Match);
+        var teamUrls = await _matchDataService.GetTeamUrls(input.Match);
 
         var oddsScraper = new OddsScraper();
-        var oddsData = oddsScraper.ExtractOddsDataFromUrl(input.Match);
+        var oddsData = await oddsScraper.ExtractOddsDataFromUrl(input.Match);
 
         var homeTeam = teamUrls[0].Split("/")[5];
         var awayTeam = teamUrls[1].Split("/")[5];
 
-        var homeMatchData = GetMatchData(teamUrls[0], homeTeam);
-        var awayMatchData = GetMatchData(teamUrls[1], awayTeam);
+        var homeMatchData = await GetMatchData(teamUrls[0], homeTeam);
+        var awayMatchData = await GetMatchData(teamUrls[1], awayTeam);
 
         var preProcessedHomeData = _preProcessorService.PreProcess(homeTeam, homeMatchData, true);
         var preProcessedAwayData = _preProcessorService.PreProcess(awayTeam, awayMatchData, false);
@@ -38,6 +38,9 @@ public class MatchPredictionService : IMatchPredictionService
             .OrderByDescending(d => d.DateTime)
             .Take(10)
             .ToList();
+
+        if (!preprocessedMatches.Any())
+            return new MatchPredictionResult() { IsFailed = true };
 
         var result1 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, true);
         var result2 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, false);
@@ -63,9 +66,9 @@ public class MatchPredictionService : IMatchPredictionService
         };
     }
 
-    private List<ParsedMatch> GetMatchData(string url, string teamName)
+    private async Task<List<ParsedMatch>> GetMatchData(string url, string teamName)
     {
-        var matches = _matchDataService.ScrapeMatchData(url, teamName);
+        var matches = await _matchDataService.ScrapeMatchData(url, teamName);
 
         var recentMatches = matches
             .OrderByDescending(m => m.Date)
@@ -79,7 +82,7 @@ public class MatchPredictionService : IMatchPredictionService
             if (!string.IsNullOrWhiteSpace(match.MatchUrl))
             {
                 var oddsScraper = new OddsScraper();
-                oddsData = oddsScraper.ExtractOddsDataFromUrl(match.MatchUrl);
+                oddsData = await oddsScraper.ExtractOddsDataFromUrl(match.MatchUrl);
             }
 
             if (oddsData.Odds1 == 0)

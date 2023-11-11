@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using FootballMatchPrediction.Core.Models;
 using FootballMatchPrediction.Core.Services.MatchPrediction;
 using FootballMatchPrediction.Core.Services.Parse;
@@ -19,14 +20,8 @@ namespace FootballMatchPrediction.Worker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-
-                await Run();
-
-                await Task.Delay(1000, stoppingToken);
-            }
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            await Run();
         }
 
         private async Task Run()
@@ -40,28 +35,43 @@ namespace FootballMatchPrediction.Worker
             await repository.DeleteAll();
 
             var numbers = await matchDataService.GetMatchIdsFromWebsite();
-            var results = new List<MatchPredictionResult>();
 
-            foreach (var number in numbers)
+            var tasks = numbers.Select(async number =>
             {
-                var result = matchPredictionService.PredictMatchOutcome(new MatchInputModel()
+                try
                 {
-                    Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
-                });
-                results.Add(new MatchPredictionResult()
-                {
-                    Id = Convert.ToInt32(number),
-                    HomeTeam = result.HomeTeam,
-                    AwayTeam = result.AwayTeam,
-                    FirstHalfPrediction = result.FirstHalfPrediction,
-                    FirstHalfActualScore = result.FirstHalfActualScore,
-                    Prediction = result.Prediction,
-                    ActualScore = result.ActualScore,
-                    MatchDate = result.MatchDate
-                });
-            }
+                    var result = await matchPredictionService.PredictMatchOutcome(new MatchInputModel()
+                    {
+                        Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
+                    });
+                    
+                    Console.WriteLine(number);
+                    if (result.IsFailed)
+                        return new MatchPredictionResult(){Id = 0};
 
-            await repository.Insert(results);
+                    return new MatchPredictionResult()
+                    {
+                        Id = Convert.ToInt32(number),
+                        HomeTeam = result.HomeTeam,
+                        AwayTeam = result.AwayTeam,
+                        FirstHalfPrediction = result.FirstHalfPrediction,
+                        FirstHalfActualScore = result.FirstHalfActualScore,
+                        Prediction = result.Prediction,
+                        ActualScore = result.ActualScore,
+                        MatchDate = result.MatchDate
+                    };
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return new MatchPredictionResult(){Id = 0};
+                }
+
+            });
+
+            var results = await Task.WhenAll(tasks);
+            results = results.Where(r => r.Id != 0).ToArray();
+            await repository.Insert(results.ToList());
         }
     }
 }

@@ -6,14 +6,14 @@ namespace FootballMatchPrediction.Core.Services.Parse
 {
     public class OddsScraper
     {
-        public OddsData ExtractOddsDataFromUrl(string oddsPageUrl)
+        public async Task<OddsData> ExtractOddsDataFromUrl(string oddsPageUrl)
         {
             var web = new HtmlWeb();
 
             if (!oddsPageUrl.Contains("https"))
                 oddsPageUrl = $"https:{oddsPageUrl}";
 
-            var doc = web.Load($"{oddsPageUrl}");
+            var doc = await web.LoadFromWebAsync($"{oddsPageUrl}");
 
             var oddsData = ExtractOddsValue(doc);
 

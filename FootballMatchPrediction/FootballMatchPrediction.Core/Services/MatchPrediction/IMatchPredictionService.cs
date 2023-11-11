@@ -4,7 +4,7 @@ namespace FootballMatchPrediction.Core.Services.MatchPrediction
 {
     public interface IMatchPredictionService
     {
-        MatchPredictionResult PredictMatchOutcome(MatchInputModel input);
+        Task<MatchPredictionResult> PredictMatchOutcome(MatchInputModel input);
     }
 
 }

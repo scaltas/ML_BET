@@ -19,9 +19,9 @@ public class MatchScoreController : Controller
     {
         return View();
     }
-    public async Task<IActionResult> GetMatchPrediction(string number)
+    public async Task<IActionResult> GetMatchPredictions(string number)
     {
-        var result = _predictionService.PredictMatchOutcome(new MatchInputModel()
+        var result = await _predictionService.PredictMatchOutcome(new MatchInputModel()
         {
             Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
         });

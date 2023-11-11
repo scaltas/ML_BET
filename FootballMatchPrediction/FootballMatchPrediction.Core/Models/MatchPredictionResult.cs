@@ -11,4 +11,6 @@ public class MatchPredictionResult
     public string ActualScore { get; set; }
     public DateTime MatchDate { get; set; }
     public List<ParsedMatch> Matches { get; set; }
+
+    public bool IsFailed { get; set; }
 }
