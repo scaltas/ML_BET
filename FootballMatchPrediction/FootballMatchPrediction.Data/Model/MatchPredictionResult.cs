@@ -10,5 +10,6 @@
         public string Prediction { get; set; }
         public string? ActualScore { get; set; }
         public DateTime MatchDate { get; set; }
+        public int ViewOrder { get; set; }
     }
 }

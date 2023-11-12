@@ -7,4 +7,5 @@
     Prediction NVARCHAR(MAX),
     ActualScore NVARCHAR(MAX),
     MatchDate DATETIME,
+    ViewOrder INT
 )

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FootballMatchPrediction.Core\FootballMatchPrediction.Core.csproj" />
+    <ProjectReference Include="..\FootballMatchPrediction.Data\FootballMatchPrediction.Data.csproj" />
   </ItemGroup>
 
 </Project>

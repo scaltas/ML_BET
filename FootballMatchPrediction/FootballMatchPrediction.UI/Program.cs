@@ -1,17 +1,20 @@
-using FootballMatchPrediction.Core.Services.DataScience.Prediction;
-using FootballMatchPrediction.Core.Services.DataScience.PreProcessing;
-using FootballMatchPrediction.Core.Services.MatchPrediction;
-using FootballMatchPrediction.Core.Services.Parse;
+using FootballMatchPrediction.Data;
+using FootballMatchPrediction.Data.Repository;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<IMatchDataService, MatchDataService>();
-builder.Services.AddScoped<IPreProcessorService, PreProcessorService>();
-builder.Services.AddScoped<IPredictorService, PredictorService>();
-builder.Services.AddScoped<IMatchPredictionService, MatchPredictionService>();
+builder.Configuration.AddJsonFile("appsettings.json"); // Add this line
+
+builder.Services.AddDbContext<MatchPredictionDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddScoped<IMatchPredictionRepository, MatchPredictionRepository>();
 
 var app = builder.Build();
 

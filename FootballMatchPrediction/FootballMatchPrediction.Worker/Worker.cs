@@ -36,6 +36,15 @@ namespace FootballMatchPrediction.Worker
 
             var numbers = await matchDataService.GetMatchIdsFromWebsite();
 
+            var orders = new Dictionary<string, int>();
+            var order = 0;
+            foreach (var num in numbers)
+            {
+                orders[num] = order++;
+            }
+
+            numbers = numbers.Distinct().ToArray();
+
             var tasks = numbers.Select(async number =>
             {
                 try
@@ -49,6 +58,8 @@ namespace FootballMatchPrediction.Worker
                     if (result.IsFailed)
                         return new MatchPredictionResult(){Id = 0};
 
+                    var order = orders[number];
+
                     return new MatchPredictionResult()
                     {
                         Id = Convert.ToInt32(number),
@@ -58,7 +69,8 @@ namespace FootballMatchPrediction.Worker
                         FirstHalfActualScore = result.FirstHalfActualScore,
                         Prediction = result.Prediction,
                         ActualScore = result.ActualScore,
-                        MatchDate = result.MatchDate
+                        MatchDate = result.MatchDate,
+                        ViewOrder = order
                     };
                 }
                 catch (Exception e)
