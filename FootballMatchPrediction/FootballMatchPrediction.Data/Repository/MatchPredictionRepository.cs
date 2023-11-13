@@ -12,9 +12,9 @@ public class MatchPredictionRepository : IMatchPredictionRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<MatchPredictionResult>> GetAllPredictions()
+    public IQueryable<MatchPredictionResult> GetAllPredictions()
     {
-        return await _context.MatchPredictionResults.ToListAsync();
+        return _context.MatchPredictionResults;
     }
 
     public async Task Insert(MatchPredictionResult result)

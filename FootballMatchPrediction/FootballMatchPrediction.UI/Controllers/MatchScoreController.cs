@@ -1,6 +1,8 @@
 ﻿using FootballMatchPrediction.Data.Repository;
 using FootballMatchPrediction.UI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace FootballMatchPrediction.UI.Controllers;
 
@@ -16,13 +18,9 @@ public class MatchScoreController : Controller
     public async Task<IActionResult> Index(DateTime? selectedDate)
     {
         var currentDate = selectedDate ?? DateTime.Now.Date;
-        var predictions = await _predictionRepository.GetAllPredictions();
-        predictions = predictions.Where(p => p.MatchDate.Date == currentDate.Date);
-
-        if (selectedDate.HasValue)
-        {
-            predictions = predictions.Where(p => p.MatchDate.Date == selectedDate.Value.Date);
-        }
+        var predictions = await _predictionRepository.GetAllPredictions()
+            .Where(p => p.MatchDate.Date == currentDate.Date)
+            .ToListAsync();
         
         var viewModel = predictions.Select(result => new MatchScore
         {
