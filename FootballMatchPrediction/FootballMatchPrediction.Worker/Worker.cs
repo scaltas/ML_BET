@@ -32,8 +32,6 @@ namespace FootballMatchPrediction.Worker
             var matchPredictionService = scope.ServiceProvider.GetRequiredService<IMatchPredictionService>();
             var repository = scope.ServiceProvider.GetRequiredService<IMatchPredictionRepository>();
 
-            await repository.DeleteAll();
-
             var numbers = await matchDataService.GetMatchIdsFromWebsite();
 
             var orders = new Dictionary<string, int>();

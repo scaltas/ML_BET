@@ -36,6 +36,17 @@
     }
 </style>
 
+<form method="get" action="@Url.Action("Index", "MatchScore")">
+    <label for="selectedDate">Select Date:</label>
+    <input type="date" id="selectedDate" name="selectedDate" value="@((ViewBag.SelectedDate ?? DateTime.Now).ToString("yyyy-MM-dd"))" />
+</form>
+
+<script>
+    document.getElementById('selectedDate').addEventListener('change', function () {
+        this.form.submit();
+    });
+</script>
+
 <table class="match-scores-table">
     <thead>
     <tr>
