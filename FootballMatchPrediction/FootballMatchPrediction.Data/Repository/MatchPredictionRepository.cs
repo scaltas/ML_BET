@@ -29,6 +29,12 @@ public class MatchPredictionRepository : IMatchPredictionRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task Update(MatchPredictionResult result)
+    {
+        _context.Update(result);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task DeleteAll()
     {
         var allResults = await _context.MatchPredictionResults.ToListAsync();

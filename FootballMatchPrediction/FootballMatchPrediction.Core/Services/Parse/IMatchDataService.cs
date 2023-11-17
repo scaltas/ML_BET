@@ -7,4 +7,5 @@ public interface IMatchDataService
     Task<List<ParsedMatch>> ScrapeMatchData(string url, string teamName);
     Task<string[]> GetTeamUrls(string matchUrl);
     Task<string[]> GetMatchIdsFromWebsite();
+    Task<string?> GetScore(string url);
 }

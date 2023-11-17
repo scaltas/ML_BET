@@ -52,8 +52,9 @@
     <tr>
         <th>Match</th>
         <th>Teams</th>
-        <th>First Half Score</th>
-        <th>Score</th>
+        <th>1h Prediction</th>
+        <th>Prediction</th>
+        <th>Result</th>
         <th>Match Date</th>
         <th>Status</th>
     </tr>
@@ -66,9 +67,10 @@
             <td>@($"{data.HomeTeam} - {data.AwayTeam}")</td>
             <td>@data.FirstHalfScore</td>
             <td>@data.PredictedScore</td>
+            <td>@data.ActualScore</td>
             <td>@data.MatchDate.ToShortDateString()</td>
             <td>
-                @if (data.PredictedScore == data.ActualScore)
+                @if (data.Success)
                 {
                     <span class="checkmark">&#10003;</span>
                 }

@@ -16,9 +16,9 @@ namespace FootballMatchPrediction.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult PredictMatchOutcome(MatchInputModel input)
+        public async Task<IActionResult> PredictMatchOutcome(MatchInputModel input)
         {
-            var predictionResult = _predictionService.PredictMatchOutcome(input);
+            var predictionResult = await _predictionService.PredictMatchOutcome(input);
             return Ok(predictionResult);
         }
     }

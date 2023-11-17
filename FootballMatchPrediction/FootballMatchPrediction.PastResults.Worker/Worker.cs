@@ -1,4 +1,6 @@
+using FootballMatchPrediction.Core.Services.Parse;
 using FootballMatchPrediction.Data.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace FootballMatchPrediction.PastResults.Worker
 {
@@ -27,7 +29,21 @@ namespace FootballMatchPrediction.PastResults.Worker
             using var scope = _serviceProvider.CreateScope();
 
             var repository = scope.ServiceProvider.GetRequiredService<IMatchPredictionRepository>();
-            var matches = repository.GetAllPredictions();
+            var matchDataService = scope.ServiceProvider.GetRequiredService<IMatchDataService>();
+
+            var matchesQueryable = repository.GetAllPredictions();
+            matchesQueryable = matchesQueryable.Where(m => m.MatchDate.Date == DateTime.Today.AddDays(-1));
+            var matches = await matchesQueryable.ToListAsync();
+
+            foreach (var match in matches)
+            {
+                var url = $"https://arsiv.mackolik.com/Mac/{match.Id}/";
+                var score = await matchDataService.GetScore(url);
+
+                match.ActualScore = score;
+                Console.WriteLine($"{match.HomeTeam} {score} {match.AwayTeam}");
+                await repository.Update(match);
+            }
         }
     }
 }

@@ -79,5 +79,16 @@ namespace FootballMatchPrediction.Core.Services.Parse
             var parser = ParserFactory.GetParser(doc);
             return parser.ParseDoc(doc, teamName);
         }
+
+        public async Task<string?> GetScore(string matchUrl)
+        {
+            var web = new HtmlWeb();
+            var doc = await web.LoadFromWebAsync(matchUrl);
+            var scoreNode = doc.DocumentNode.SelectSingleNode("//div[@class='match-score']");
+
+            var scoreText = scoreNode?.InnerText.Trim();
+            return scoreText;
+
+        }
     }
 }

@@ -3,6 +3,7 @@ using FootballMatchPrediction.UI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using FootballMatchPrediction.Data.Model;
 
 namespace FootballMatchPrediction.UI.Controllers;
 
@@ -29,8 +30,10 @@ public class MatchScoreController : Controller
             AwayTeam = result.AwayTeam,
             FirstHalfScore = result.FirstHalfPrediction,
             PredictedScore = result.Prediction,
+            ActualScore = result.ActualScore ?? "-",
             MatchDate = result.MatchDate,
-            ViewOrder = result.ViewOrder
+            ViewOrder = result.ViewOrder,
+            Success = CheckSuccess(result)
         })
             .OrderBy(m => m.ViewOrder)
             .ToList();
@@ -38,5 +41,10 @@ public class MatchScoreController : Controller
         ViewBag.SelectedDate = currentDate;
 
         return View(viewModel);
+    }
+
+    private bool CheckSuccess(MatchPredictionResult result)
+    {
+        return false;
     }
 }

@@ -7,5 +7,6 @@ public interface IMatchPredictionRepository
     IQueryable<MatchPredictionResult> GetAllPredictions();
     Task Insert(MatchPredictionResult result);
     Task Insert(IEnumerable<MatchPredictionResult> results);
+    Task Update(MatchPredictionResult result);
     Task DeleteAll();
 }
