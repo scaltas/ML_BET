@@ -40,11 +40,44 @@ public class MatchScoreController : Controller
 
         ViewBag.SelectedDate = currentDate;
 
+        int totalPredictions = viewModel.Count();
+        int successfulPredictions = viewModel.Count(m => m.Success);
+
+        ViewBag.SuccessRate = (double)successfulPredictions / totalPredictions * 100;
+
         return View(viewModel);
     }
 
     private bool CheckSuccess(MatchPredictionResult result)
     {
-        return false;
+        try
+        {
+            if (string.IsNullOrEmpty(result.ActualScore) || result.ActualScore == "v")
+                return false;
+
+            // Parse the predicted score
+            string[] predictedScores = result.Prediction.Split(" - ");
+            double predictedTeam1Score = double.Parse(predictedScores[0].Trim());
+            double predictedTeam2Score = double.Parse(predictedScores[1].Trim());
+
+            // Parse the actual score
+            string[] actualScores = result.ActualScore.Split(" - ");
+            int actualTeam1Score = int.Parse(actualScores[0].Trim());
+            int actualTeam2Score = int.Parse(actualScores[1].Trim());
+
+            // Check if the difference is smaller than 0.5
+            bool isPredictionCorrect =
+                Math.Abs(predictedTeam1Score - actualTeam1Score) < 0.5 &&
+                Math.Abs(predictedTeam2Score - actualTeam2Score) < 0.5;
+
+            return isPredictionCorrect;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+
     }
+
+    
 }

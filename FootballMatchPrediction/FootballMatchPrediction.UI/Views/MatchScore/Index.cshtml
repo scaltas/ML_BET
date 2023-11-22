@@ -36,10 +36,17 @@
     }
 </style>
 
-<form method="get" action="@Url.Action("Index", "MatchScore")">
-    <label for="selectedDate">Select Date:</label>
-    <input type="date" id="selectedDate" name="selectedDate" value="@((ViewBag.SelectedDate ?? DateTime.Now).ToString("yyyy-MM-dd"))" />
-</form>
+<!-- Display success rate above the table -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <form method="get" action="@Url.Action("Index", "MatchScore")">
+        <label for="selectedDate">Select Date:</label>
+        <input type="date" id="selectedDate" name="selectedDate" value="@((ViewBag.SelectedDate ?? DateTime.Now).ToString("yyyy-MM-dd"))" />
+    </form>
+
+    <div>
+        <strong>Success Rate:</strong> @ViewBag.SuccessRate.ToString("0.00")%
+    </div>
+</div>
 
 <script>
     document.getElementById('selectedDate').addEventListener('change', function () {

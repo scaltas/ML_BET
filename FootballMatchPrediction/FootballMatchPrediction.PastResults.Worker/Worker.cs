@@ -32,7 +32,7 @@ namespace FootballMatchPrediction.PastResults.Worker
             var matchDataService = scope.ServiceProvider.GetRequiredService<IMatchDataService>();
 
             var matchesQueryable = repository.GetAllPredictions();
-            matchesQueryable = matchesQueryable.Where(m => m.MatchDate.Date == DateTime.Today.AddDays(-1));
+            //matchesQueryable = matchesQueryable.Where(m => m.MatchDate.Date == DateTime.Today.AddDays(-2));
             var matches = await matchesQueryable.ToListAsync();
 
             foreach (var match in matches)
@@ -44,6 +44,8 @@ namespace FootballMatchPrediction.PastResults.Worker
                 Console.WriteLine($"{match.HomeTeam} {score} {match.AwayTeam}");
                 await repository.Update(match);
             }
+
+            Console.WriteLine("Completed.");
         }
     }
 }
