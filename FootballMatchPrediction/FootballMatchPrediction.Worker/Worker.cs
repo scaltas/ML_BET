@@ -51,10 +51,14 @@ namespace FootballMatchPrediction.Worker
                     {
                         Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
                     });
-                    
+                        
                     Console.WriteLine(number);
                     if (result.IsFailed)
-                        return new MatchPredictionResult(){Id = 0};
+                    {
+                        Console.WriteLine("Error");
+                        return new MatchPredictionResult() { Id = 0 };
+                    }
+                       
 
                     var order = orders[number];
 

@@ -21,6 +21,9 @@ public class MatchPredictionService : IMatchPredictionService
     public async Task<MatchPredictionResult> PredictMatchOutcome(MatchInputModel input)
     {
         var teamUrls = await _matchDataService.GetTeamUrls(input.Match);
+        if (teamUrls == null)
+            return new MatchPredictionResult() { IsFailed = true };
+
 
         var oddsScraper = new OddsScraper();
         var oddsData = await oddsScraper.ExtractOddsDataFromUrl(input.Match);

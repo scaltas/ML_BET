@@ -30,12 +30,16 @@ namespace FootballMatchPrediction.Core.Services.Parse
 
             {
                 var element = doc.DocumentNode.SelectSingleNode("//a[@class='left-block-team-name']");
+                if (element == null)
+                    return null;
                 string hrefValue = element.GetAttributeValue("href", "");
                 result.Add(hrefValue);
             }
 
             {
                 var element = doc.DocumentNode.SelectSingleNode("//a[@class='r-left-block-team-name']");
+                if (element == null)
+                    return null;
                 string hrefValue = element.GetAttributeValue("href", "");
                 result.Add(hrefValue);
             }
