@@ -22,7 +22,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddScoped<IMatchDataService, MatchDataService>();
         services.AddScoped<IMatchPredictionService, MatchPredictionService>();
         services.AddScoped<IPreProcessorService, PreProcessorService>();
-        services.AddScoped<IPredictorService, PredictorService>();
+        services.AddScoped<IPredictorServiceFactory, PredictorServiceFactory>();
     })
     .Build();
 

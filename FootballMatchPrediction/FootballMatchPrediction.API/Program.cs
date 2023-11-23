@@ -11,7 +11,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<IMatchDataService, MatchDataService>();
 builder.Services.AddScoped<IPreProcessorService, PreProcessorService>();
-builder.Services.AddScoped<IPredictorService, PredictorService>();
+builder.Services.AddScoped<IPredictorServiceFactory, PredictorServiceFactory>();
 builder.Services.AddScoped<IMatchPredictionService, MatchPredictionService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

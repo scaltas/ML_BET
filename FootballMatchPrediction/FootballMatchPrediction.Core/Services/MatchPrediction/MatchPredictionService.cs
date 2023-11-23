@@ -9,13 +9,13 @@ public class MatchPredictionService : IMatchPredictionService
 {
     private readonly IMatchDataService _matchDataService;
     private readonly IPreProcessorService _preProcessorService;
-    private readonly IPredictorService _predictorService;
+    private readonly IPredictorServiceFactory _predictorServiceFactory;
 
-    public MatchPredictionService(IMatchDataService matchDataService, IPreProcessorService preProcessorService, IPredictorService predictorService)
+    public MatchPredictionService(IMatchDataService matchDataService, IPreProcessorService preProcessorService, IPredictorServiceFactory predictorServiceFactory)
     {
         _matchDataService = matchDataService;
-        _preProcessorService = preProcessorService; 
-        _predictorService = predictorService;
+        _preProcessorService = preProcessorService;
+        _predictorServiceFactory = predictorServiceFactory;
     }
 
     public async Task<MatchPredictionResult> PredictMatchOutcome(MatchInputModel input)
@@ -23,7 +23,7 @@ public class MatchPredictionService : IMatchPredictionService
         var teamUrls = await _matchDataService.GetTeamUrls(input.Match);
         if (teamUrls == null)
             return new MatchPredictionResult() { IsFailed = true };
-
+        
 
         var oddsScraper = new OddsScraper();
         var oddsData = await oddsScraper.ExtractOddsDataFromUrl(input.Match);
@@ -31,26 +31,28 @@ public class MatchPredictionService : IMatchPredictionService
         var homeTeam = teamUrls[0].Split("/")[5];
         var awayTeam = teamUrls[1].Split("/")[5];
 
-        var homeMatchData = await GetMatchData(teamUrls[0], homeTeam);
-        var awayMatchData = await GetMatchData(teamUrls[1], awayTeam);
+        var homeMatchData = await GetMatchData(teamUrls[0], homeTeam, input.SampleCount);
+        var awayMatchData = await GetMatchData(teamUrls[1], awayTeam, input.SampleCount);
 
         var preProcessedHomeData = _preProcessorService.PreProcess(homeTeam, homeMatchData, true);
         var preProcessedAwayData = _preProcessorService.PreProcess(awayTeam, awayMatchData, false);
 
         var preprocessedMatches = preProcessedHomeData.Concat(preProcessedAwayData)
             .OrderByDescending(d => d.DateTime)
-            .Take(10)
+            .Take(input.SampleCount)
             .ToList();
 
         if (!preprocessedMatches.Any())
             return new MatchPredictionResult() { IsFailed = true };
 
-        var result1 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, true);
-        var result2 = _predictorService.Predict(preprocessedMatches, oddsData.Odds1, false);
+        var predictorService = _predictorServiceFactory.CreatePredictorService(input.Algorithm);
+             
+        var result1 = predictorService.Predict(preprocessedMatches, oddsData.Odds1, true);
+        var result2 = predictorService.Predict(preprocessedMatches, oddsData.Odds1, false);
         var result = $"{result1:0.00} - {result2:0.00}";
 
-        var firstHalfResult1 = _predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, true);
-        var firstHalfResult2 = _predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, false);
+        var firstHalfResult1 = predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, true);
+        var firstHalfResult2 = predictorService.PredictFirstHalf(preprocessedMatches, oddsData.Odds1, false);
         var firstHalfResult = $"{firstHalfResult1:0.00} - {firstHalfResult2:0.00}";
 
         return new MatchPredictionResult
@@ -60,7 +62,7 @@ public class MatchPredictionService : IMatchPredictionService
             Matches = homeMatchData
                 .Concat(awayMatchData)
                 .OrderByDescending(m => m.Date)
-                .Take(10)
+                .Take(input.SampleCount)
                 .ToList(),
             HomeTeam = homeTeam,
             AwayTeam = awayTeam,
@@ -69,13 +71,13 @@ public class MatchPredictionService : IMatchPredictionService
         };
     }
 
-    private async Task<List<ParsedMatch>> GetMatchData(string url, string teamName)
+    private async Task<List<ParsedMatch>> GetMatchData(string url, string teamName, int sampleCount)
     {
         var matches = await _matchDataService.ScrapeMatchData(url, teamName);
 
         var recentMatches = matches
             .OrderByDescending(m => m.Date)
-            .Take(10)
+            .Take(sampleCount)
             .ToList();
 
 
