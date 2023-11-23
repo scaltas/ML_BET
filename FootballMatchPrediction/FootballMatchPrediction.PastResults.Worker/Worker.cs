@@ -32,17 +32,19 @@ namespace FootballMatchPrediction.PastResults.Worker
             var matchDataService = scope.ServiceProvider.GetRequiredService<IMatchDataService>();
 
             var matchesQueryable = repository.GetAllPredictions();
-            //matchesQueryable = matchesQueryable.Where(m => m.MatchDate.Date == DateTime.Today.AddDays(-2));
             var matches = await matchesQueryable.ToListAsync();
 
             foreach (var match in matches)
             {
-                var url = $"https://arsiv.mackolik.com/Mac/{match.Id}/";
-                var score = await matchDataService.GetScore(url);
+                if (string.IsNullOrEmpty(match.ActualScore) || match.ActualScore == "v")
+                {
+                    var url = $"https://arsiv.mackolik.com/Mac/{match.Id}/";
+                    var score = await matchDataService.GetScore(url);
 
-                match.ActualScore = score;
-                Console.WriteLine($"{match.HomeTeam} {score} {match.AwayTeam}");
-                await repository.Update(match);
+                    match.ActualScore = score;
+                    Console.WriteLine($"{match.HomeTeam} {score} {match.AwayTeam}");
+                    await repository.Update(match);
+                }
             }
 
             Console.WriteLine("Completed.");
