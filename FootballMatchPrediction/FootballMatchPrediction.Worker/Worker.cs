@@ -45,41 +45,57 @@ namespace FootballMatchPrediction.Worker
 
             var tasks = numbers.Select(async number =>
             {
-                try
+                int maxRetries = 3; // Set the maximum number of retries
+
+                for (int retryCount = 0; retryCount < maxRetries; retryCount++)
                 {
-                    var result = await matchPredictionService.PredictMatchOutcome(new MatchInputModel()
+                    try
                     {
-                        Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
-                    });
-                        
-                    Console.WriteLine(number);
-                    if (result.IsFailed)
-                    {
-                        Console.WriteLine("Error");
-                        return new MatchPredictionResult() { Id = 0 };
+                        var result = await matchPredictionService.PredictMatchOutcome(new MatchInputModel()
+                        {
+                            Match = $"https://arsiv.mackolik.com/Match/Default.aspx?id={number}"
+                        });
+
+                        Console.WriteLine(number);
+                        if (result.IsFailed)
+                        {
+                            Console.WriteLine("Error");
+                            return new MatchPredictionResult() { Id = 0 };
+                        }
+
+                        var order = orders[number];
+
+                        return new MatchPredictionResult()
+                        {
+                            Id = Convert.ToInt32(number),
+                            HomeTeam = result.HomeTeam,
+                            AwayTeam = result.AwayTeam,
+                            FirstHalfPrediction = result.FirstHalfPrediction,
+                            FirstHalfActualScore = result.FirstHalfActualScore,
+                            Prediction = result.Prediction,
+                            ActualScore = result.ActualScore,
+                            MatchDate = result.MatchDate,
+                            ViewOrder = order
+                        };
                     }
-                       
-
-                    var order = orders[number];
-
-                    return new MatchPredictionResult()
+                    catch (Exception e)
                     {
-                        Id = Convert.ToInt32(number),
-                        HomeTeam = result.HomeTeam,
-                        AwayTeam = result.AwayTeam,
-                        FirstHalfPrediction = result.FirstHalfPrediction,
-                        FirstHalfActualScore = result.FirstHalfActualScore,
-                        Prediction = result.Prediction,
-                        ActualScore = result.ActualScore,
-                        MatchDate = result.MatchDate,
-                        ViewOrder = order
-                    };
+                        Console.WriteLine($"Attempt {retryCount + 1} failed. Exception: {e}");
+
+                        // If this is the last attempt, return a failure result
+                        if (retryCount == maxRetries - 1)
+                        {
+                            Console.WriteLine("Max retries reached. Returning failure result.");
+                            return new MatchPredictionResult() { Id = 0 };
+                        }
+
+                        // Wait for a short duration before retrying
+                        Console.WriteLine("Retrying after a short delay...");
+                        await Task.Delay(TimeSpan.FromSeconds(1)); // You can adjust the delay duration
+                    }                   
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    return new MatchPredictionResult(){Id = 0};
-                }
+
+                return new MatchPredictionResult() { Id = 0 };
 
             });
 
