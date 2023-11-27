@@ -1,4 +1,5 @@
 using System.Reflection.Metadata.Ecma335;
+using FootballMatchPrediction.Core.Extensions;
 using FootballMatchPrediction.Core.Models;
 using FootballMatchPrediction.Core.Services.MatchPrediction;
 using FootballMatchPrediction.Core.Services.Parse;
@@ -41,7 +42,9 @@ namespace FootballMatchPrediction.Worker
                 orders[num] = order++;
             }
 
-            numbers = numbers.Distinct().ToArray();
+            numbers = numbers
+                .Distinct().ToArray();
+            
 
             var tasks = numbers.Select(async number =>
             {
@@ -99,9 +102,19 @@ namespace FootballMatchPrediction.Worker
 
             });
 
-            var results = await Task.WhenAll(tasks);
-            results = results.Where(r => r.Id != 0).ToArray();
-            await repository.Insert(results.ToList());
+            var results = new List<MatchPredictionResult>();
+
+            foreach (var taskBatch in tasks.ChunkBy(50))
+            {
+                var batchResults = await Task.WhenAll(taskBatch);
+                results.AddRange(batchResults);
+            }
+            
+            results = results.Where(r => r.Id != 0).ToList();
+            await repository.Insert(results);
+
+            Console.WriteLine("Completed.");
         }
+
     }
 }

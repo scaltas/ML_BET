@@ -25,7 +25,17 @@ public class MatchPredictionRepository : IMatchPredictionRepository
 
     public async Task Insert(IEnumerable<MatchPredictionResult> results)
     {
-        _context.MatchPredictionResults.AddRange(results);
+        foreach (var result in results)
+        {
+            var existingEntity = _context.MatchPredictionResults
+                .FirstOrDefault(e => e.Id == result.Id);
+
+            if (existingEntity == null)
+            {
+                _context.MatchPredictionResults.Add(result);
+            }
+        }
+
         await _context.SaveChangesAsync();
     }
 
